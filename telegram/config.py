@@ -32,83 +32,91 @@ class OfficialClients:
     """
     Official Telegram client credentials.
 
-    These are extracted from official open-source clients and opentele library.
-    Using these makes your session appear as an official client.
+    api_id and api_hash are PERMANENT identifiers - they don't change.
+    app_version should be updated periodically to match current releases.
 
-    WARNING: Telegram may flag accounts using credentials that don't match
-    the actual client behavior. Use responsibly.
+    Sources:
+    - https://github.com/thedemons/opentele (api_id/hash, last updated 2022)
+    - https://github.com/telegramdesktop/tdesktop/releases (versions)
+
+    Last updated: December 2024
     """
 
     # Telegram Desktop (Windows/Linux/macOS)
+    # api_id 2040 = "Public Win Beta" - permanent identifier
     # Source: https://github.com/telegramdesktop/tdesktop
     TDESKTOP = DeviceInfo(
         api_id=2040,
         api_hash="b18441a1ff607e10a989891a5462e627",
         device_model="Desktop",
         system_version="Windows 10",
-        app_version="5.8.3 x64",  # Updated to recent version
+        app_version="5.9.0 x64",  # Updated Dec 2024
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="tdesktop",
     )
 
     # Telegram for Android
+    # api_id 6 = original Android app - permanent identifier
     # Source: https://github.com/DrKLO/Telegram
     ANDROID = DeviceInfo(
         api_id=6,
         api_hash="eb06d4abfb49dc3eeb1aeb98ae0f581e",
-        device_model="Samsung SM-G998B",  # Galaxy S21 Ultra
-        system_version="SDK 31",
-        app_version="10.14.5 (5516)",  # Updated
+        device_model="Samsung SM-S928B",  # Galaxy S24 Ultra
+        system_version="SDK 34",  # Android 14
+        app_version="11.5.0 (5516)",  # Updated Dec 2024
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="android",
     )
 
     # Telegram X for Android
-    # Source: https://github.com/AXErunners/AXEj
+    # api_id 21724 - permanent identifier
     ANDROID_X = DeviceInfo(
         api_id=21724,
         api_hash="3e0cb5efcd52300aec5994fdfc5bdc16",
-        device_model="Samsung SM-G998B",
-        system_version="SDK 31",
-        app_version="0.26.6 (1954)",
+        device_model="Samsung SM-S928B",
+        system_version="SDK 34",
+        app_version="0.26.6 (1954)",  # Telegram X updates less frequently
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="android",
     )
 
     # Telegram for iOS
+    # api_id 10840 - permanent identifier
     IOS = DeviceInfo(
         api_id=10840,
         api_hash="33c45224029d59cb3ad0c16134215aeb",
-        device_model="iPhone 15 Pro Max",
-        system_version="17.2",
-        app_version="10.14",
+        device_model="iPhone 16 Pro Max",
+        system_version="18.1",  # iOS 18
+        app_version="11.5",  # Updated Dec 2024
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="ios",
     )
 
     # Telegram for macOS (Swift)
+    # api_id 2834 - permanent identifier
     MACOS = DeviceInfo(
         api_id=2834,
         api_hash="68875f756c9b437a8b916ca3de215815",
         device_model="MacBook Pro",
-        system_version="macOS 14.2",
-        app_version="10.14",
+        system_version="macOS 15.1",  # Sequoia
+        app_version="11.5",  # Updated Dec 2024
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="macos",
     )
 
     # Telegram Web Z/K
+    # api_id 2496 - permanent identifier
     WEB = DeviceInfo(
         api_id=2496,
         api_hash="8da85b0d5bfe62527e5b244c209159c3",
-        device_model="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        device_model="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         system_version="Windows",
-        app_version="2.0.0 A",
+        app_version="2.1.0 A",  # Updated Dec 2024
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="",
@@ -120,7 +128,7 @@ class OfficialClients:
         api_hash="344583e45741c457fe1862106095a5eb",
         device_model="Desktop",
         system_version="Windows 10",
-        app_version="5.8.3 x64",
+        app_version="5.9.0 x64",  # Updated Dec 2024
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="tdesktop",
@@ -132,30 +140,32 @@ class OfficialClients:
         api_hash="d524b414d21f4d37f08684c1df41ac9c",
         device_model="Desktop",
         system_version="Windows 10",
-        app_version="5.8.3 x64",
+        app_version="5.9.0 x64",  # Updated Dec 2024
         lang_code="en",
         system_lang_code="en-US",
         lang_pack="tdesktop",
     )
 
 
-# Device model variations for randomization
+# Device model variations for randomization (updated Dec 2024)
 ANDROID_DEVICES = [
-    "Samsung SM-G998B",   # Galaxy S21 Ultra
-    "Samsung SM-S918B",   # Galaxy S23 Ultra
     "Samsung SM-S928B",   # Galaxy S24 Ultra
+    "Samsung SM-S926B",   # Galaxy S24+
+    "Samsung SM-S921B",   # Galaxy S24
+    "Samsung SM-S918B",   # Galaxy S23 Ultra
+    "Google Pixel 9 Pro XL",
+    "Google Pixel 9 Pro",
     "Google Pixel 8 Pro",
-    "Google Pixel 7 Pro",
     "OnePlus 12",
     "Xiaomi 14 Pro",
 ]
 
 IOS_DEVICES = [
+    "iPhone 16 Pro Max",
+    "iPhone 16 Pro",
     "iPhone 15 Pro Max",
     "iPhone 15 Pro",
     "iPhone 14 Pro Max",
-    "iPhone 14 Pro",
-    "iPhone 13 Pro Max",
 ]
 
 MACOS_DEVICES = [
@@ -163,6 +173,7 @@ MACOS_DEVICES = [
     "MacBook Air",
     "Mac mini",
     "iMac",
+    "Mac Studio",
 ]
 
 
