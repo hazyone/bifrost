@@ -94,14 +94,19 @@ class TgClient:
             app_version=device.app_version,
             lang_code=device.lang_code,
             system_lang_code=device.system_lang_code,
-            # NOTE: Telethon doesn't support lang_pack parameter
-            # This is a limitation - official clients send lang_pack
-            # but Telethon sends empty string. For most use cases this is fine.
         )
+
+        # Monkey-patch lang_pack into InitConnectionRequest
+        # Telethon doesn't expose this parameter, but official clients send it
+        # Must be done AFTER client creation but BEFORE connect()
+        # See: https://github.com/LonamiWebs/Telethon/issues/3031
+        if device.lang_pack:
+            self.client._init_request.lang_pack = device.lang_pack
+            logger.debug(f"Patched lang_pack to '{device.lang_pack}'")
 
         logger.info(
             f"Client initialized as {device.device_model} "
-            f"({device.system_version}, app v{device.app_version})"
+            f"({device.system_version}, app v{device.app_version}, lang_pack={device.lang_pack})"
         )
 
     async def connect(self) -> bool:
