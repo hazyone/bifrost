@@ -82,16 +82,26 @@ class TgClient:
         # Session file path
         session_path = Path(__file__).parent / f"{config.session_name}.session"
 
-        # Create client with TDesktop device info to appear as official client
+        # Create client with official client device info
+        # This makes the session appear as an official Telegram client
+        device = config.device
         self.client = TelegramClient(
             str(session_path),
-            config.api_id,
-            config.api_hash,
-            device_model="Desktop",
-            system_version="Windows 10",
-            app_version="4.16.8",
-            lang_code="en",
-            system_lang_code="en",
+            device.api_id,
+            device.api_hash,
+            device_model=device.device_model,
+            system_version=device.system_version,
+            app_version=device.app_version,
+            lang_code=device.lang_code,
+            system_lang_code=device.system_lang_code,
+            # NOTE: Telethon doesn't support lang_pack parameter
+            # This is a limitation - official clients send lang_pack
+            # but Telethon sends empty string. For most use cases this is fine.
+        )
+
+        logger.info(
+            f"Client initialized as {device.device_model} "
+            f"({device.system_version}, app v{device.app_version})"
         )
 
     async def connect(self) -> bool:
