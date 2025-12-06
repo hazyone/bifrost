@@ -143,16 +143,20 @@ class TgClient:
         """Disconnect from Telegram."""
         await self.client.disconnect()
 
-    async def resolve_group(self, identifier: str) -> Channel | Chat:
+    async def resolve_group(self, identifier: str, join_if_needed: bool = False) -> Channel | Chat:
         """
         Resolve a group/channel by username, ID, or invite link.
 
+        For PUBLIC groups (@username): resolves without joining, can read messages
+        For PRIVATE groups (invite link): checks the invite, optionally joins
+
         Args:
             identifier: Username (@group), invite link (t.me/+xxx), or numeric ID
+            join_if_needed: If True, join private groups via invite link
         """
         await self.rate_limiter.wait()
 
-        # Handle invite links
+        # Handle invite links (private groups/channels)
         if "t.me/+" in identifier or "t.me/joinchat/" in identifier:
             # Extract hash from invite link
             if "t.me/+" in identifier:
@@ -160,17 +164,95 @@ class TgClient:
             else:
                 hash_part = identifier.split("/")[-1]
 
-            # Join via invite link
-            result = await self.client(functions.messages.ImportChatInviteRequest(hash_part))
-            return result.chats[0]
+            # First, check the invite without joining
+            try:
+                result = await self.client(functions.messages.CheckChatInviteRequest(hash_part))
 
-        # Handle usernames
+                # ChatInvite = not joined yet, ChatInviteAlready = already a member
+                if hasattr(result, 'chat'):
+                    # Already a member
+                    logger.info(f"Already a member of: {result.chat.title}")
+                    return result.chat
+                elif hasattr(result, 'title'):
+                    # Not a member - it's a ChatInvite object
+                    logger.info(f"Found private group: {result.title} (not joined)")
+
+                    if join_if_needed:
+                        logger.info("Joining...")
+                        join_result = await self.client(
+                            functions.messages.ImportChatInviteRequest(hash_part)
+                        )
+                        return join_result.chats[0]
+                    else:
+                        # Return info about the chat without joining
+                        # Can't read messages without joining private groups
+                        raise PermissionError(
+                            f"Private group '{result.title}' requires joining to read messages. "
+                            f"Use join_if_needed=True or call join_by_invite_link()"
+                        )
+            except Exception as e:
+                if "INVITE_HASH_EXPIRED" in str(e):
+                    raise ValueError("Invite link has expired")
+                raise
+
+        # Handle usernames (public groups/channels) - can read without joining
         if identifier.startswith("@"):
             identifier = identifier[1:]
 
         entity = await self.client.get_entity(identifier)
         logger.info(f"Resolved: {getattr(entity, 'title', entity.first_name)} (ID: {entity.id})")
         return entity
+
+    async def check_invite_link(self, invite_link: str) -> dict:
+        """
+        Check an invite link without joining.
+
+        Returns info about the chat: title, participants count, etc.
+        """
+        await self.rate_limiter.wait()
+
+        if "t.me/+" in invite_link:
+            hash_part = invite_link.split("+")[-1]
+        elif "t.me/joinchat/" in invite_link:
+            hash_part = invite_link.split("/")[-1]
+        else:
+            hash_part = invite_link
+
+        result = await self.client(functions.messages.CheckChatInviteRequest(hash_part))
+
+        if hasattr(result, 'chat'):
+            # Already a member
+            return {
+                "title": result.chat.title,
+                "id": result.chat.id,
+                "already_member": True,
+                "participants_count": getattr(result.chat, 'participants_count', None),
+            }
+        else:
+            # Not a member - ChatInvite object
+            return {
+                "title": result.title,
+                "already_member": False,
+                "participants_count": result.participants_count,
+                "is_channel": result.channel,
+                "is_broadcast": result.broadcast,
+            }
+
+    async def join_by_invite_link(self, invite_link: str) -> Channel | Chat:
+        """Join a private group/channel via invite link."""
+        await self.rate_limiter.wait()
+
+        if "t.me/+" in invite_link:
+            hash_part = invite_link.split("+")[-1]
+        elif "t.me/joinchat/" in invite_link:
+            hash_part = invite_link.split("/")[-1]
+        else:
+            hash_part = invite_link
+
+        result = await self.client(functions.messages.ImportChatInviteRequest(hash_part))
+        chat = result.chats[0]
+        logger.info(f"Joined: {chat.title}")
+        return chat
 
     async def join_channel(self, channel: Channel):
         """Join a channel or supergroup."""
